@@ -15,26 +15,28 @@
                 return;
             }
 
-            var i, data, index, result;
+            this._data.push(ele);
 
-            for (i = 0, index = 0; i < this._data.length; i++) {
-                data = this._data[i];
-                result = ele.compareTo(data);
-                if (result == null) {
-                    return;
-                }
-                if (result > 0) {
-                    index++;
-                } else {
-                    break;
-                }
-            }
+            // var i, data, index, result;
 
-            for (i = this._data.length; i > index; i--) {
-                this._data[i] = this._data[i - 1];
-            }
+            // for (i = 0, index = 0; i < this._data.length; i++) {
+            //     data = this._data[i];
+            //     result = ele.compareTo(data);
+            //     if (result == null) {
+            //         return;
+            //     }
+            //     if (result > 0) {
+            //         index++;
+            //     } else {
+            //         break;
+            //     }
+            // }
 
-            this._data[index] = ele;
+            // for (i = this._data.length; i > index; i--) {
+            //     this._data[i] = this._data[i - 1];
+            // }
+
+            // this._data[index] = ele;
         },
 
         contains: function (ele) {
@@ -42,23 +44,29 @@
                 return false;
             }
 
-
-            var i, low, mid, high;
-            low = 0;
-            high = this._data.length - 1;
-            while (low <= high) {
-                mid = parseInt((low + high) / 2);
-
-                if (this._data[mid] == ele) {
+            for (var e in this._data) {
+                if (e == ele) {
                     return true;
                 }
-
-                if (this._data[mid].compareTo(ele) < 0) {
-                    low = mid + 1;
-                } else {
-                    high = mid - 1;
-                }
             }
+
+
+            // var i, low, mid, high;
+            // low = 0;
+            // high = this._data.length - 1;
+            // while (low <= high) {
+            //     mid = parseInt((low + high) / 2);
+
+            //     if (this._data[mid] == ele) {
+            //         return true;
+            //     }
+
+            //     if (this._data[mid].compareTo(ele) < 0) {
+            //         low = mid + 1;
+            //     } else {
+            //         high = mid - 1;
+            //     }
+            // }
 
             return false;
         },

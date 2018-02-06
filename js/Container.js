@@ -2,7 +2,7 @@
  * Created by ZhangJikai on 2016/12/3.
  */
 (function () {
-    cce.Container = function (canvas) {
+    cce.Container = function (canvas, center) {
         if (canvas == null) {
             throw Error("canvas can't be null");
         }
@@ -10,6 +10,11 @@
         this.context = this.canvas.getContext("2d");
 
         this._childs = [];
+
+        /*if (center) {
+            this.center = {x:this.canvas.width / 2, y:this.canvas.height /2 };
+            this.context.translate(this.center.x, this.center.y);
+        }*/
 
     };
 
@@ -25,16 +30,18 @@
 
         draw: function () {
             this._childs.forEach(function (child) {
-                //console.log(child);
                 child.draw();
             })
         },
 
         enableMouse: function () {
             var self = this;
-            this.canvas.addEventListener("mousemove", function (event) {
-                self._handleMouseMove(event, self);
-            }, false);
+
+            ["mouseover", "mousemove", "mousedown", "mouseup"].forEach(function(evtStr){
+                self.canvas.addEventListener(evtStr, function (event) {
+                    self._handleMouseMove(event, self);
+                }, false);
+            });
         },
 
         enableClick: function () {
@@ -45,6 +52,7 @@
         },
 
         _handleMouseMove: function (event, container) {
+            var evtType = event.type;
             // 这里传入container 主要是为了使用 _windowToCanvas函数
             var point = container._windowToCanvas(event.clientX, event.clientY);
 
@@ -57,9 +65,11 @@
                 // 鼠标不在的元素
                 var unSelectedElements = array.unSelectedElements;
                 selectedElements.forEach(function (ele) {
-                    if (ele.hasListener("mousemove")) {
-                        var event = new cce.Event(point.x, point.y, "mousemove", ele);
-                        ele.fire("mousemove", event);
+                    //修改上部分的内容
+                   
+                    if (ele.hasListener(evtType)) {
+                        var event = new cce.Event(point.x, point.y, evtType, ele);
+                        ele.fire(evtType, event);
                     }
 
                     if (!ele.inBounds) {
@@ -103,10 +113,19 @@
 
         _windowToCanvas: function (x, y) {
             var bbox = this.canvas.getBoundingClientRect();
-            return {
+            var pos = {
                 x: x - bbox.left,
                 y: y - bbox.top
-            }
+            };
+
+            /*if (this.center) {
+                pos = {
+                    x: pos.x - this.center.x,
+                    y: pos.y - this.center.y
+                };
+            }*/
+
+            return pos;
         }
     }
 }());

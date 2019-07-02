@@ -29,6 +29,9 @@
         },
 
         draw: function () {
+            var canvas = this.canvas;
+            //先清除画布
+            this.context.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
             this._childs.forEach(function (child) {
                 child.draw();
             })
@@ -49,6 +52,69 @@
             this.canvas.addEventListener("click", function (event) {
                 self._handleClick(event, self);
             }, false);
+        },
+
+        enableDrag: function() {
+            var self = this;
+            // ["dargstart", "darging", "dragend"]
+            ["mousedown", "mousemove", "mouseup"].forEach(function(eventStr) {
+                self.canvas.addEventListener(eventStr, function(event) {
+                    self._handleDrag(event, self);
+                }, false);
+            })
+        },
+
+        _handleDrag: function(event, container) {
+            var eventMap = {mousedown:"dragstart", mousemove:"draging", mouseup:"dragend"};
+            var evtType = event.type,
+                dragEvtType = eventMap[evtType];
+            // 这里传入container 主要是为了使用 _windowToCanvas函数
+            var point = container._windowToCanvas(event.clientX, event.clientY);
+
+            var array, selectedElements = [];
+
+            var enableDrag = this.enableDrag;
+
+            if (evtType == 'mousedown') {
+                enableDrag.mousedown = true;
+                array = cce.EventManager.getTargets(dragEvtType);
+                if (array != null) {
+                    array.search(point);
+                    // 鼠标所在的元素
+                    selectedElements = array.selectedElements;
+                }
+                setTimeout(function() {
+                    if (enableDrag.mousedown) {
+                        enableDrag.draging = true;
+                        selectedElements.forEach(function (ele) {
+                            if (ele.hasListener(dragEvtType)) {
+                                var event = new cce.Event(point.x, point.y, dragEvtType, ele);
+                                ele.fire(dragEvtType, event);
+                            }
+                        });
+                        enableDrag.target = selectedElements;
+                    }
+                }, 100)
+            } else if (evtType == 'mousemove') {
+                if (enableDrag.draging) {
+                    enableDrag.target.forEach(function (ele) {
+                        if (ele.hasListener(dragEvtType)) {
+                            var event = new cce.Event(point.x, point.y, dragEvtType, ele);
+                            ele.fire(dragEvtType, event);
+                        }
+                    });
+                }
+            } else if (evtType == 'mouseup') {
+                if (enableDrag.draging) {
+                    enableDrag.target.forEach(function (ele) {
+                        if (ele.hasListener(dragEvtType)) {
+                            var event = new cce.Event(point.x, point.y, dragEvtType, ele);
+                            ele.fire(dragEvtType, event);
+                        }
+                    });
+                }
+                enableDrag.mousedown = enableDrag.draging = false;
+            }
         },
 
         _handleMouseMove: function (event, container) {

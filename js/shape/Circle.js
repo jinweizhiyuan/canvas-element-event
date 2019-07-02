@@ -23,12 +23,12 @@
             originCoord = this.originCoord;
 
         // todo 清除当前图形
-        context.save();
-        context.translate(this.oldOriginCoord.x, this.oldOriginCoord.y);
-        context.rotate(this.oldRotate);
-        context.clearRect(this.x - this.radius - 5, this.y - this.radius -5, this.radius * 2 + 6, this.radius * 2 + 6);
-        // context.arc(, this.y, this.radius, 0, Math.PI * 2, false);
-        context.restore();
+        // context.save();
+        // context.translate(this.oldOriginCoord.x, this.oldOriginCoord.y);
+        // context.rotate(this.oldRotate);
+        // context.clearRect(this.x - this.radius - 5, this.y - this.radius -5, this.radius * 2 + 6, this.radius * 2 + 6);
+        // // context.arc(, this.y, this.radius, 0, Math.PI * 2, false);
+        // context.restore();
 
         context.save();
 

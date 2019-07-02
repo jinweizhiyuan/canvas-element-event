@@ -24,11 +24,11 @@
         
 
         // todo 清除当前图形
-        context.save();
-        context.translate(this.oldOriginCoord.x, this.oldOriginCoord.y);
-        context.rotate(this.oldRotate);
-        context.clearRect(-this.width / 2 - 1, -this.height / 2 -1, this.width + 2, this.height + 2);
-        context.restore();
+        // context.save();
+        // context.translate(this.oldOriginCoord.x, this.oldOriginCoord.y);
+        // context.rotate(this.oldRotate);
+        // context.clearRect(-this.width / 2 - 1, -this.height / 2 -1, this.width + 2, this.height + 2);
+        // context.restore();
 
         // context.translate(-this.translate.x, -this.translate.y);
         // context.beginPath();

@@ -1,8 +1,8 @@
 /**
  * Created by ZhangJikai on 2016/12/5.
  */
-(function () {
-    cce.Circle = function (x, y, radius) {
+(function() {
+    cce.Circle = function(x, y, radius) {
         cce.DisplayObject.call(this);
         this.x = x || -1;
         this.y = y || -1;
@@ -18,7 +18,7 @@
     cce.Circle.prototype = Object.create(cce.DisplayObject.prototype);
     cce.Circle.prototype.constructor = cce.Circle;
 
-    cce.Circle.prototype.draw = function () {
+    cce.Circle.prototype.draw = function() {
         var context = this.context,
             originCoord = this.originCoord;
 
@@ -30,13 +30,19 @@
         // // context.arc(, this.y, this.radius, 0, Math.PI * 2, false);
         // context.restore();
 
+        var gra = context.createLinearGradient(this.x - this.radius, this.y, this.x + this.radius, this.y);
+        gra.addColorStop(0, "#ffffff");
+        gra.addColorStop(0.7, "#ffff00");
+        gra.addColorStop(1, "#ff0000");
+
         context.save();
 
         context.translate(originCoord.x, originCoord.y);
         context.rotate(this.rotate);
 
         context.beginPath();
-        context.strokeStyle = "blue";
+        context.strokeStyle = gra;
+        context.lineWidth = 2;
         context.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
         context.stroke();
         context.closePath();
@@ -63,14 +69,16 @@
         context.moveTo(inflectionX, inflectionY);
         context.lineTo(arrow2.x, arrow2.y);
 
-        context.strokeStyle = "blue";
+        context.lineCap = "round";
+        context.strokeStyle = gra;
+        context.lineWidth = 2;
         context.stroke();
         context.closePath();
 
         context.restore();
     };
 
-    cce.Circle.prototype.compareTo = function (target) {
+    cce.Circle.prototype.compareTo = function(target) {
         if (target.minX == null) {
             return null;
         }
@@ -86,7 +94,7 @@
         return null;
     };
 
-    cce.Circle.prototype.comparePointX = function (point) {
+    cce.Circle.prototype.comparePointX = function(point) {
         var ret = null;
 
         if (point.x == null) {
@@ -94,7 +102,7 @@
         }
 
         var convertCoor = cce.convertCoor;
-        
+
         var pointInCanvasAxis = convertCoor(point, this.originCoord, this.rotate);
 
         if (this.minX < pointInCanvasAxis.x) {
@@ -109,7 +117,7 @@
         return ret;
     };
 
-    cce.Circle.prototype.hasPoint = function (point) {
+    cce.Circle.prototype.hasPoint = function(point) {
 
         if (point.x == null || point.y == null) {
             return false;
@@ -117,7 +125,7 @@
 
         var convertCoor = cce.convertCoor;
         var pointInCanvasAxis = convertCoor(point, this.originCoord, this.rotate);
-        
+
         var distance = Math.pow(pointInCanvasAxis.x - this.x, 2) + Math.pow(pointInCanvasAxis.y - this.y, 2) - Math.pow(this.radius, 2);
         if (distance < 0) {
             return true;

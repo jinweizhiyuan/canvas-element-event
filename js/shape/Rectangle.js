@@ -1,8 +1,8 @@
 /**
  * Created by ZhangJikai on 2016/12/3.
  */
-(function () {
-    cce.Rectangle = function (x, y, width, height) {
+(function() {
+    cce.Rectangle = function(x, y, width, height) {
         cce.DisplayObject.call(this);
         this.x = x || -1;
         this.y = y || -1;
@@ -19,9 +19,9 @@
     cce.Rectangle.prototype = Object.create(cce.DisplayObject.prototype);
     cce.Rectangle.prototype.constructor = cce.Rectangle;
 
-    cce.Rectangle.prototype.draw = function () {
+    cce.Rectangle.prototype.draw = function() {
         var context = this.context;
-        
+
 
         // todo 清除当前图形
         // context.save();
@@ -43,16 +43,17 @@
         // 用矩形的中心点为原点画图
         context.translate(this.originCoord.x, this.originCoord.y);
         context.rotate(this.rotate);
-        context.strokeRect(-this.width / 2, -this.height / 2, this.width , this.height);
+        context.strokeStyle = 'red';
+        context.strokeRect(-this.width / 2, -this.height / 2, this.width, this.height);
         // context.strokeRect(this.x, this.y, this.width, this.height);
 
         context.restore();
-       /* if (this.isRotate) {
-            context.strokeStyle = "red";
-            context.arc(this.x + this.width / 2, this.y - 10 - 1, 10, 0, Math.PI*2, false);
-            context.stroke();
-            context.strokeStyle = "black";
-        }*/
+        /* if (this.isRotate) {
+             context.strokeStyle = "red";
+             context.arc(this.x + this.width / 2, this.y - 10 - 1, 10, 0, Math.PI*2, false);
+             context.stroke();
+             context.strokeStyle = "black";
+         }*/
     };
 
     /*cce.Rectangle.prototype.rotate = function (angle) {
@@ -71,7 +72,7 @@
         
     }*/
 
-    cce.Rectangle.prototype.compareTo = function (target) {
+    cce.Rectangle.prototype.compareTo = function(target) {
         if (target.minX == null) {
             return null;
         }
@@ -87,7 +88,7 @@
         return null;
     };
 
-    cce.DisplayObject.prototype.comparePointX = function (point) {
+    cce.DisplayObject.prototype.comparePointX = function(point) {
 
         var ret = null;
         if (point.x == null || point.y == null) {
@@ -97,7 +98,7 @@
                 rotate = this.rotate;
             var startPos = this.getPosition();
             var convertCoor = cce.convertCoor;
-        
+
             var pointInCanvasAxis = convertCoor(point, originCoord, rotate);
 
             // console.log("==========comparePointX==========");
@@ -114,14 +115,14 @@
             }
             if (startPos.x > pointInCanvasAxis.x) {
                 ret = 1;
-            }   
+            }
         }
 
         // console.log(ret);
         return ret;
     };
 
-    cce.Rectangle.prototype.hasPoint = function (point) {
+    cce.Rectangle.prototype.hasPoint = function(point) {
         // console.log("==========hasPoint==========");
         var ret = false;
         if (point.x == null || point.y == null) {
@@ -131,7 +132,7 @@
                 rotate = this.rotate;
             var startPos = this.getPosition();
             var convertCoor = cce.convertCoor;
-        
+
             var pointInCanvasAxis = convertCoor(point, originCoord, rotate);
 
             if (startPos.x + this.width >= pointInCanvasAxis.x && startPos.y <= pointInCanvasAxis.y && startPos.y + this.height >= pointInCanvasAxis.y) {
@@ -144,16 +145,16 @@
         return ret;
     };
 
-    cce.Rectangle.prototype.getPosition = function () {
+    cce.Rectangle.prototype.getPosition = function() {
         // console.log("==========getPosition==========");
         // 获取中心点，计算起始位置
         var originCoord = this.originCoord,
             rotate = this.rotate,
             convertCoor = cce.convertCoor;
 
-        var startPos = convertCoor({x:this.width / 2, y:this.height / 2}, originCoord, rotate)
-        // console.log(startPos);
-        return {x: -this.width / 2, y:-this.height / 2};
+        var startPos = convertCoor({ x: this.width / 2, y: this.height / 2 }, originCoord, rotate)
+            // console.log(startPos);
+        return { x: -this.width / 2, y: -this.height / 2 };
     };
 
     cce.Rectangle.prototype.setOriginCoord = function(coord) {

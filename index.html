@@ -5,61 +5,62 @@
     <meta charset="UTF-8">
     <title>Canvas Element Event Handler</title>
     <style type="text/css">
-    body {
-        background: #efefef;
-    }
-
-    #container {
-        width: 1012px;
-        margin: 0 auto;
-    }
-
-    #left {
-        float: left;
-        width: 700px;
-        padding: 0;
-        margin: 0;
-    }
-
-    #canvas {
-        border-radius: 10px;
-        border: 1px dashed #ccc;
-        background: #fff;
-    }
-
-    #right {
-        float: left;
-        width: 300px;
-        height: 500px;
-        margin: 0 0 0 12px;
-        padding: 0;
-    }
-
-    .output {
-        display: inline-block;
-        margin: 0;
-        width: 100%;
-        height: 480px;
-        overflow: auto;
-        font-family: sans-serif;
-        font-size: 1em;
-        line-height: 1.2em;
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px dashed #ccc;
-        background: #fff;
-    }
-
-    .btn-group {
-        position: absolute;
-        left: 5px;
-        top: 5px;
-        width: 60px;
-        border: 1px solid #000000;
-    }
-    .btn-group .btn {
-        width: 100%;
-    }
+        body {
+            background: #efefef;
+        }
+        
+        #container {
+            width: 1012px;
+            margin: 0 auto;
+        }
+        
+        #left {
+            float: left;
+            width: 700px;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #canvas {
+            border-radius: 10px;
+            border: 1px dashed #ccc;
+            background: grey;
+        }
+        
+        #right {
+            float: left;
+            width: 300px;
+            height: 500px;
+            margin: 0 0 0 12px;
+            padding: 0;
+        }
+        
+        .output {
+            display: inline-block;
+            margin: 0;
+            width: 100%;
+            height: 480px;
+            overflow: auto;
+            font-family: sans-serif;
+            font-size: 1em;
+            line-height: 1.2em;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px dashed #ccc;
+            background: #fff;
+        }
+        
+        .btn-group {
+            position: absolute;
+            left: 5px;
+            top: 5px;
+            width: 60px;
+            border: 1px solid #000000;
+        }
+        
+        .btn-group .btn {
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -68,7 +69,9 @@
         <div>工具箱</div>
         <button type="button" class="btn btn-default">移动</button>
         <button type="button" class="btn btn-default">矩形</button>
+        <button type="button" class="btn btn-default">多边形</button>
         <button type="button" class="btn btn-default">清除</button>
+        <button type="button" class="btn btn-default">撤销</button>
     </div>
     <div id="container">
         <div id="left">
@@ -89,371 +92,337 @@
     <script type="text/javascript" src="js/shape/Circle.js"></script>
     <script type="text/javascript" src="js/shape/Polygon.js"></script>
     <script type="text/javascript">
-    var convertCoor = cce.convertCoor;
+        var convertCoor = cce.convertCoor;
 
-    var output = document.getElementById('msg');
+        var output = document.getElementById('msg');
 
-    var canvas = document.getElementById("canvas");
+        var canvas = document.getElementById("canvas");
 
-    var container = new cce.Container(canvas, true),
-        context = container.context;
-    container.enableMouse();
-    container.enableClick();
-    container.enableDrag();
+        var container = new cce.Container(canvas, true),
+            context = container.context;
+        container.enableMouse();
+        container.enableClick();
+        container.enableDrag();
 
-    // 工具箱按钮事件
-    var CURRENT_CURSOR = "move",
-        toolStartCoor,
-        toolIsDown,
-        CURRENT_GEOMETRIC;
-    var btns = document.querySelectorAll(".btn-group .btn");
-    btns[0].addEventListener("click", function() {
-        CURRENT_CURSOR = "move";
-    },false);
+        // 工具箱按钮事件
+        var CURRENT_CURSOR = "move",
+            toolStartCoor,
+            toolIsDown,
+            CURRENT_GEOMETRIC,
+            POLYGON_STATE;
+        var btns = document.querySelectorAll(".btn-group .btn");
+        btns[0].addEventListener("click", function() {
+            CURRENT_CURSOR = "move";
+        }, false);
 
-    btns[1].addEventListener("click", function() {
-        CURRENT_CURSOR = "rectangle";
-    },false);
-    btns[2].addEventListener("click", function() {
-        var i = 0;
-        while (container._childs[i]) {
-            container._childs[i]._listeners = {};
-            i++;
-        }
-        cce.EventManager._targets = {};
-        container._childs = [];
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        container.draw();
-    },false);
-
-    canvas.addEventListener("mousedown", function(e) {
-        if (CURRENT_CURSOR == "rectangle") {
-            toolStartCoor = container._windowToCanvas(e.clientX, e.clientY);
-            toolIsDown = true;
-        }
-    }, false);
-
-    canvas.addEventListener("mousemove", function(e) {
-        if (CURRENT_CURSOR == "rectangle" && toolIsDown) {
-            var coord = container._windowToCanvas(e.clientX, e.clientY);
-            var width = coord.x - toolStartCoor.x,
-                height = coord.y - toolStartCoor.y;
-
-            //context.strokeRect(toolStartCoor.x, toolStartCoor.y, width, height);
-
-            if (CURRENT_GEOMETRIC) {
-                CURRENT_GEOMETRIC.width = width;
-                CURRENT_GEOMETRIC.height = height;
-
-                CURRENT_GEOMETRIC.setOriginCoord({x:toolStartCoor.x + width/2, y:toolStartCoor.y + height/2})
-            } else {
-                CURRENT_GEOMETRIC = new cce.Rectangle(toolStartCoor.x, toolStartCoor.y, width, height);
-                container.addChild(CURRENT_GEOMETRIC);
+        btns[1].addEventListener("click", function() {
+            CURRENT_CURSOR = "rectangle";
+            canvas.style.cursor = "crosshair";
+        }, false);
+        btns[2].addEventListener("click", function() {
+            CURRENT_CURSOR = "polygon";
+            canvas.style.cursor = "crosshair";
+        });
+        btns[3].addEventListener("click", function() {
+            var i = 0;
+            while (container._childs[i]) {
+                container._childs[i]._listeners = {};
+                i++;
             }
+            cce.EventManager._targets = {};
+            container._childs = [];
+            context.clearRect(0, 0, canvas.width, canvas.height);
             container.draw();
-        }
-    }, false);
-    canvas.addEventListener("mouseup", function(e) {
-        if (CURRENT_CURSOR == "rectangle" || toolIsDown) {
-            var geometric = CURRENT_GEOMETRIC;
+        }, false);
+        btns[4].addEventListener("click", function() {
+            if (CURRENT_GEOMETRIC) {
+                //多边形路径没有闭合，则可以撤销节点
+                var points = CURRENT_GEOMETRIC.points;
+                if (!CURRENT_GEOMETRIC.isClosePath()) {
+                    CURRENT_GEOMETRIC.removePoint();
+                    container.draw();
+                }
+            }
+        }, false);
 
-            // 矩形移动
-            var isDown = false,
-                recStartCoor,
-                startCoor,
-                cursor = "move";
-            geometric.addListener("mousemove", function(e) {
-                if (!isDown) {
-                    //　如果位于边框上，则开始拖动大小
-                    var coord = cce.convertCoor({x:e.x, y:e.y}, this.originCoord, this.rotate);
-                    var recCoord = this.getPosition();
-                    /*if (coord.x < recCoord.x + 20 ) {
-                        cursor = "w-resize";
-                    } else */
-                    if (coord.x > recCoord.x - 20 + this.width) {
-                        cursor = "e-resize"
+        canvas.addEventListener("click", function(e) {
+            if (CURRENT_CURSOR == "polygon") {
+                if (!POLYGON_STATE) {
+                    POLYGON_STATE = "drawing";
+                    CURRENT_GEOMETRIC = new cce.Polygon();
+                    container.addChild(CURRENT_GEOMETRIC);
+                }
+                if (!CURRENT_GEOMETRIC.addPoint(container._windowToCanvas(e.clientX, e.clientY))) {
+                    var startCoor,
+                        _geometric = CURRENT_GEOMETRIC;
+                    _geometric.addListener("dragstart", function(e) {
+                        startCoor = {
+                            x: e.x,
+                            y: e.y
+                        };
+                    });
+                    _geometric.addListener("draging", function(e) {
+                        var dx = e.x - startCoor.x,
+                            dy = e.y - startCoor.y;
+                        _geometric.move(dx, dy);
+                        container.draw();
+                        startCoor = {
+                            x: e.x,
+                            y: e.y
+                        };
+                    });
+                    _geometric.addListener("dragend", function(e) {
+                        startCoor = null;
+                    });
+                    _geometric.addListener("mouseover", function() {
+                        canvas.style.cursor = "move";
+                    });
+                    _geometric.addListener("mouseout", function() {
+                        canvas.style.cursor = "auto";
+                    });
+                    //绘制多边形完成
+                    POLYGON_STATE = CURRENT_GEOMETRIC = null;
+                    CURRENT_CURSOR = "auto";
+                    canvas.style.cursor = "auto";
+                }
+                container.draw();
+            }
+        }, false);
+
+        canvas.addEventListener("mousedown", function(e) {
+            if (CURRENT_CURSOR == "rectangle") {
+                toolStartCoor = container._windowToCanvas(e.clientX, e.clientY);
+                toolIsDown = true;
+            }
+        }, false);
+
+        canvas.addEventListener("mousemove", function(e) {
+            var coord = container._windowToCanvas(e.clientX, e.clientY);
+            if (CURRENT_CURSOR == "rectangle" && toolIsDown) {
+                var width = coord.x - toolStartCoor.x,
+                    height = coord.y - toolStartCoor.y;
+
+                //context.strokeRect(toolStartCoor.x, toolStartCoor.y, width, height);
+
+                if (CURRENT_GEOMETRIC) {
+                    CURRENT_GEOMETRIC.width = width;
+                    CURRENT_GEOMETRIC.height = height;
+
+                    CURRENT_GEOMETRIC.setOriginCoord({
+                        x: toolStartCoor.x + width / 2,
+                        y: toolStartCoor.y + height / 2
+                    })
+                } else {
+                    CURRENT_GEOMETRIC = new cce.Rectangle(toolStartCoor.x, toolStartCoor.y, width, height);
+                    container.addChild(CURRENT_GEOMETRIC);
+                }
+                container.draw();
+            } else if (CURRENT_CURSOR == "polygon" && POLYGON_STATE) {
+                var points = CURRENT_GEOMETRIC.points;
+                if (points && points.length) {
+                    var lastPoint = points[points.length - 1];
+                    container.draw();
+                    context.save();
+                    context.beginPath();
+                    context.moveTo(lastPoint.x, lastPoint.y);
+                    context.lineTo(coord.x, coord.y);
+                    if (Math.abs(coord.x - points[0].x) < 10 && Math.abs(coord.y - points[0].y) < 10) {
+
+                        context.fillStyle = "yellow";
+                        context.rect(coord.x - 7, coord.y - 7, 14, 14);
+                        context.fill();
                     }
-                    /*else if (coord.y < recCoord.y + 20) {
+                    context.strokeStyle = "black";
+                    context.strokeWidth = 3;
+                    context.closePath();
+                    context.stroke();
+                    context.restore();
+                }
+            }
+        }, false);
+        canvas.addEventListener("mouseup", function(e) {
+            if (CURRENT_CURSOR == "rectangle" || toolIsDown) {
+                var geometric = CURRENT_GEOMETRIC;
+
+                // 矩形移动
+                var isDown = false,
+                    recStartCoor,
+                    startCoor,
+                    cursor = "move";
+                geometric.addListener("mousemove", function(e) {
+                    if (!isDown) {
+                        //　如果位于边框上，则开始拖动大小
+                        var coord = cce.convertCoor({
+                            x: e.x,
+                            y: e.y
+                        }, this.originCoord, this.rotate);
+                        var recCoord = this.getPosition();
+                        /*if (coord.x < recCoord.x + 20 ) {
+                            cursor = "w-resize";
+                        } else */
+                        if (coord.x > recCoord.x - 20 + this.width) {
+                            cursor = "e-resize"
+                        }
+                        /*else if (coord.y < recCoord.y + 20) {
                        cursor = "n-resize"
                    } */
-                    else if (coord.y > recCoord.y -20 + this.height) {
-                        cursor = "s-resize"
-                    } else {
-                        cursor = "move";
-                    }
-                    canvas.style.cursor = cursor;
-                }
-            });
-            geometric.addListener("dragstart", function(e) {
-                isDown = true;
-                // recStartCoor = { x: geometric.x, y: geometric.y }
-                startCoor = { x: e.x, y: e.y };
-            });
-            geometric.addListener("dragend", function(e) {
-                isDown = false;
-                startCoor = null;
-                container.context.restore();
-                canvas.style.cursor = "auto";
-            });
-            // geometric.addListener("mouseout", function(e) {
-            //     isDown = false;
-            //     startCoor = null;
-            //     container.context.restore();
-            //     canvas.style.cursor = "auto";
-            // });
-            geometric.addListener("draging", function(e) {
-                if (isDown) {
-                    var dx = e.x - startCoor.x,
-                        dy = e.y - startCoor.y;
-
-                    context.save();
-                    if (cursor == "move") {
-
-                        if (this.originCoord) {
-
-                            // rec.originCoord.x += dx;
-                            // rec.originCoord.y += dy;
-                            this.setOriginCoord({x:this.originCoord.x + dx, y:this.originCoord.y + dy})
-                            circleBtn.setOriginCoord(this.originCoord);
-                            // circleBtn.originCoord = rec.originCoord;
+                        else if (coord.y > recCoord.y - 20 + this.height) {
+                            cursor = "s-resize"
+                        } else {
+                            cursor = "move";
                         }
-                        
-                        // 如果坐标旋转，不能直接加 recCenterPos，因为旋转后的坐标和屏幕坐标值不相等
-                        // 因此先平移坐标， 以矩形中心为圆点画圆，然后到矩形的 x y坐标
-
-                        
-                        // context.translate(-offsetInCanvasAxis.x, -offsetInCanvasAxis.y);
-
-                        
-
-                        context.restore();
-                    } else {
-                        if (cursor == "e-resize" || cursor == "w-resize") {
-                            this.width += dx;
-                            this.setOriginCoord({x:this.originCoord.x + dx / 2, y:this.originCoord.y});
-                        } else if (cursor == "n-resize" || cursor == "s-resize") {
-                            this.height += dy;
-                            this.setOriginCoord({x:this.originCoord.x, y:this.originCoord.y + dy /2});
-                            circleBtn.y = - this.height/2 - 15 - 2
-                        }
-                        circleBtn.setOriginCoord(this.originCoord);
+                        console.log(cursor);
+                        canvas.style.cursor = cursor;
                     }
-
-                    container.draw()
-
-                    startCoor = {x: e.x, y: e.y}; //记录移动后鼠标在屏幕坐标系的新位置
-                }
-            });
-
-            // 旋转控制
-            var circleBtn = new cce.Circle(0, - geometric.height/2 - 15 - 2, 15, 0, Math.PI * 2);
-            circleBtn.originCoord = geometric.originCoord;
-            circleBtn.setOriginCoord(geometric.originCoord);
-            container.addChild(circleBtn);
-            var isCircleBtnDown = false,
-                curPos;
-            circleBtn.addListener("dragstart", function(e) {
-                isCircleBtnDown = true;
-                curPos = {
-                    x: e.x,
-                    y: e.y
-                }
-            });
-            circleBtn.addListener("draging", function(e) {
-                canvas.style.cursor = "crosshair";
-                
-                if (isCircleBtnDown) {
-                    container.context.save();
-
-                    var coor = convertCoor({x:e.x, y:e.y}, geometric.originCoord, geometric.rotate);
-                    var newR = Math.atan2(coor.x, -coor.y); //在旋转前的canvas坐标系中 
-
-                    var rotate = geometric.rotate + newR;
-                    geometric.setRotate(rotate);
-                    this.setRotate(rotate);
-                    
-
-                    container.draw()
-
+                });
+                geometric.addListener("mouseout", function(e) {
+                    canvas.style.cursor = 'auto';
+                });
+                geometric.addListener("dragstart", function(e) {
+                    isDown = true;
+                    // recStartCoor = { x: geometric.x, y: geometric.y }
+                    startCoor = {
+                        x: e.x,
+                        y: e.y
+                    };
+                });
+                geometric.addListener("dragend", function(e) {
+                    isDown = false;
+                    startCoor = null;
                     container.context.restore();
-                }
-            });
-            circleBtn.addListener("dragend", function(e) {
-                isCircleBtnDown = false;
-                canvas.style.cursor = "auto";
-                container.context.restore();
-            });
-            // circleBtn.addListener("mouseout", function(e) {
-            //     isCircleBtnDown = false;
-            //     canvas.style.cursor = "auto";
-            //     container.context.restore();
-            // });
+                    canvas.style.cursor = "auto";
+                });
+                // geometric.addListener("mouseout", function(e) {
+                //     isDown = false;
+                //     startCoor = null;
+                //     container.context.restore();
+                //     canvas.style.cursor = "auto";
+                // });
+                geometric.addListener("draging", function(e) {
+                    if (isDown) {
+                        var dx = e.x - startCoor.x,
+                            dy = e.y - startCoor.y;
 
-            container.draw();
+                        context.save();
+                        if (cursor == "move") {
 
-            CURRENT_CURSOR = null;
-            toolIsDown = false;
-            lastWH = null;
-            CURRENT_GEOMETRIC = null;
+                            if (this.originCoord) {
+
+                                // rec.originCoord.x += dx;
+                                // rec.originCoord.y += dy;
+                                this.setOriginCoord({
+                                    x: this.originCoord.x + dx,
+                                    y: this.originCoord.y + dy
+                                })
+                                circleBtn.setOriginCoord(this.originCoord);
+                                // circleBtn.originCoord = rec.originCoord;
+                            }
+
+                            // 如果坐标旋转，不能直接加 recCenterPos，因为旋转后的坐标和屏幕坐标值不相等
+                            // 因此先平移坐标， 以矩形中心为圆点画圆，然后到矩形的 x y坐标
+
+
+                            // context.translate(-offsetInCanvasAxis.x, -offsetInCanvasAxis.y);
+
+
+
+                            context.restore();
+                        } else {
+                            if (cursor == "e-resize" || cursor == "w-resize") {
+                                this.width += dx;
+                                this.setOriginCoord({
+                                    x: this.originCoord.x + dx / 2,
+                                    y: this.originCoord.y
+                                });
+                            } else if (cursor == "n-resize" || cursor == "s-resize") {
+                                this.height += dy;
+                                this.setOriginCoord({
+                                    x: this.originCoord.x,
+                                    y: this.originCoord.y + dy / 2
+                                });
+                                circleBtn.y = -this.height / 2 - 15 - 2
+                            }
+                            circleBtn.setOriginCoord(this.originCoord);
+                        }
+
+                        container.draw()
+
+                        startCoor = {
+                            x: e.x,
+                            y: e.y
+                        }; //记录移动后鼠标在屏幕坐标系的新位置
+                    }
+                });
+
+                // 旋转控制
+                var circleBtn = new cce.Circle(0, -geometric.height / 2 - 15 - 2, 15, 0, Math.PI * 2);
+                circleBtn.originCoord = geometric.originCoord;
+                circleBtn.setOriginCoord(geometric.originCoord);
+                container.addChild(circleBtn);
+                var isCircleBtnDown = false,
+                    curPos;
+                circleBtn.addListener("dragstart", function(e) {
+                    isCircleBtnDown = true;
+                    curPos = {
+                        x: e.x,
+                        y: e.y
+                    }
+                });
+                circleBtn.addListener("draging", function(e) {
+                    canvas.style.cursor = "crosshair";
+
+                    if (isCircleBtnDown) {
+                        container.context.save();
+
+                        var coor = convertCoor({
+                            x: e.x,
+                            y: e.y
+                        }, geometric.originCoord, geometric.rotate);
+                        var newR = Math.atan2(coor.x, -coor.y); //在旋转前的canvas坐标系中 
+
+                        var rotate = geometric.rotate + newR;
+                        geometric.setRotate(rotate);
+                        this.setRotate(rotate);
+
+
+                        container.draw()
+
+                        container.context.restore();
+                    }
+                });
+                circleBtn.addListener("dragend", function(e) {
+                    isCircleBtnDown = false;
+                    canvas.style.cursor = "auto";
+                    container.context.restore();
+                });
+                // circleBtn.addListener("mouseout", function(e) {
+                //     isCircleBtnDown = false;
+                //     canvas.style.cursor = "auto";
+                //     container.context.restore();
+                // });
+
+                container.draw();
+
+                CURRENT_CURSOR = null;
+                toolIsDown = false;
+                lastWH = null;
+                CURRENT_GEOMETRIC = null;
+            }
+        })
+
+        function move() {
+            appendMsg("move in small circle...")
         }
-    })
 
-    // var rec = new cce.Rectangle(50, 50, 200, 100);
-    // container.addChild(rec);
+        function click() {
+            circle2.removeListener("mousemove", move);
+            appendMsg("click at small circle...");
+            appendMsg("remove mouseover listener of small circle...");
+        }
 
-    // var circleBtn = new cce.Circle(0, - rec.height/2 - 15 - 2, 15, 0, Math.PI * 2);
-    // circleBtn.originCoord = rec.originCoord;
-    // circleBtn.setOriginCoord(rec.originCoord);
-    // container.addChild(circleBtn);
-
-    // var isDown = false,
-    //     recStartCoor,
-    //     startCoor;
-
-    // rec.addListener("mousedown", function(e) {
-    //     isDown = true;
-    //     // recStartCoor = { x: rec.x, y: rec.y }
-    //     startCoor = { x: e.x, y: e.y };
-    // });
-    // rec.addListener("mouseup", function(e) {
-    //     isDown = false;
-    //     startCoor = null;
-    //     container.context.restore();
-    //     canvas.style.cursor = "auto";
-    // });
-    // rec.addListener("mouseout", function(e) {
-    //     isDown = false;
-    //     startCoor = null;
-    //     container.context.restore();
-    //     canvas.style.cursor = "auto";
-    // });
-    // rec.addListener("mousemove", function(e) {
-    //     var cursor = "move";
-
-    //     //　如果位于边框上，则开始拖动大小
-    //     var coord = cce.convertCoor({x:e.x, y:e.y}, this.originCoord, this.rotate);
-    //     var recCoord = rec.getPosition();
-
-    //     /*if (coord.x < recCoord.x + 20 ) {
-    //         cursor = "w-resize";
-    //     } else */
-    //     if (coord.x > recCoord.x - 20 + this.width) {
-    //         cursor = "e-resize"
-    //     }
-    //      /*else if (coord.y < recCoord.y + 20) {
-    //         cursor = "n-resize"
-    //     } */
-    //     else if (coord.y > recCoord.y -20 + this.height) {
-    //         cursor = "s-resize"
-    //     }
-
-    //     canvas.style.cursor = cursor;
-
-    //     if (isDown) {
-    //         var dx = e.x - startCoor.x,
-    //             dy = e.y - startCoor.y;
-
-    //         context.save();
-    //         if (cursor == "move") {
-
-                
-
-                
-
-    //             if (rec.originCoord) {
-
-    //                 // rec.originCoord.x += dx;
-    //                 // rec.originCoord.y += dy;
-    //                 this.setOriginCoord({x:this.originCoord.x + dx, y:this.originCoord.y + dy})
-    //                 circleBtn.setOriginCoord(this.originCoord);
-    //                 // circleBtn.originCoord = rec.originCoord;
-    //             }
-                
-    //             // 如果坐标旋转，不能直接加 recCenterPos，因为旋转后的坐标和屏幕坐标值不相等
-    //             // 因此先平移坐标， 以矩形中心为圆点画圆，然后到矩形的 x y坐标
-
-                
-    //             // context.translate(-offsetInCanvasAxis.x, -offsetInCanvasAxis.y);
-
-                
-
-    //             context.restore();
-    //         } else {
-    //             if (cursor == "e-resize" || cursor == "w-resize") {
-    //                 this.width += dx;
-    //                 this.setOriginCoord({x:this.originCoord.x + dx / 2, y:this.originCoord.y});
-    //             } else if (cursor == "n-resize" || cursor == "s-resize") {
-    //                 this.height += dy;
-    //                 this.setOriginCoord({x:this.originCoord.x, y:this.originCoord.y + dy /2});
-    //                 circleBtn.y = - this.height/2 - 15 - 2
-    //             }
-    //             circleBtn.setOriginCoord(this.originCoord);
-    //         }
-
-    //         this.draw();
-    //         circleBtn.draw();
-
-    //         startCoor = {x: e.x, y: e.y}; //记录移动后鼠标在屏幕坐标系的新位置
-    //     }
-    // });
-
-    // var isCircleBtnDown = false,
-    //     curPos;
-    // circleBtn.addListener("mousedown", function(e) {
-    //     isCircleBtnDown = true;
-    //     curPos = {
-    //         x: e.x,
-    //         y: e.y
-    //     }
-    // });
-    // circleBtn.addListener("mousemove", function(e) {
-    //     canvas.style.cursor = "crosshair";
-        
-    //     if (isCircleBtnDown) {
-    //         container.context.save();
-
-    //         var coor = convertCoor({x:e.x, y:e.y}, rec.originCoord, rec.rotate);
-    //         var newR = Math.atan2(coor.x, -coor.y); //在旋转前的canvas坐标系中 
-
-    //         var rotate = rec.rotate + newR;
-    //         rec.setRotate(rotate);
-    //         this.setRotate(rotate);
-            
-
-    //         rec.draw();
-
-    //         this.draw();
-
-    //         container.context.restore();
-    //     }
-    // });
-    // circleBtn.addListener("mouseup", function(e) {
-    //     isCircleBtnDown = false;
-    //     canvas.style.cursor = "auto";
-    //     container.context.restore();
-    // });
-    // circleBtn.addListener("mouseout", function(e) {
-    //     isCircleBtnDown = false;
-    //     canvas.style.cursor = "auto";
-    //     container.context.restore();
-    // });
-
-    // container.draw();
-
-    function move() {
-        appendMsg("move in small circle...")
-    }
-
-    function click() {
-        circle2.removeListener("mousemove", move);
-        appendMsg("click at small circle...");
-        appendMsg("remove mouseover listener of small circle...");
-    }
-
-    function appendMsg(msg) {
-        output.value = output.value + msg + "\n";
-    }
-    
+        function appendMsg(msg) {
+            output.value = output.value + msg + "\n";
+        }
     </script>
 </body>
 

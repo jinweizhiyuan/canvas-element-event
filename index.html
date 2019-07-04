@@ -24,7 +24,7 @@
         #canvas {
             border-radius: 10px;
             border: 1px dashed #ccc;
-            background: grey;
+            background: #ffffff;
         }
         
         #right {
@@ -131,7 +131,6 @@
             }
             cce.EventManager._targets = {};
             container._childs = [];
-            context.clearRect(0, 0, canvas.width, canvas.height);
             container.draw();
         }, false);
         btns[4].addEventListener("click", function() {
@@ -271,7 +270,6 @@
                         } else {
                             cursor = "move";
                         }
-                        console.log(cursor);
                         canvas.style.cursor = cursor;
                     }
                 });

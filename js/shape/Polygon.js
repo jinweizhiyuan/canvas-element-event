@@ -76,6 +76,10 @@
         }
 
         var i = 0;
+        this.context.save();
+        this.context.strokeStyle = "red";
+        this.context.shadowColor = 'yellow';
+        this.context.shadowBlur = 3;
         this.context.beginPath();
 
         this.context.moveTo(this.points[0].x, this.points[0].y);
@@ -89,6 +93,7 @@
             this.context.closePath();
         }
         this.context.stroke();
+        this.context.restore();
     };
 
     cce.Polygon.prototype.compareTo = function(target) {

@@ -40,6 +40,8 @@
         // context.stroke();
 
         context.save();
+        context.shadowColor = 'yellow';
+        context.shadowBlur = 3;
         // 用矩形的中心点为原点画图
         context.translate(this.originCoord.x, this.originCoord.y);
         context.rotate(this.rotate);

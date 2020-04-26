@@ -61,6 +61,15 @@
         .btn-group .btn {
             width: 100%;
         }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            clear: both;
+            background-color: #ffffff;
+        }
+        .result pre {
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 
@@ -79,6 +88,28 @@
         </div>
         <div id="right">
             <textarea class="output" id="msg"></textarea>
+        </div>
+        <div class="result">
+            收集几何图形数据
+            <pre>
+                $.each(cceContainer._childs, function(index, c) {
+                    if (c instanceof cce.Rectangle) {
+                        var trans = c.originCoord,
+                            x = trans.x - c.width / 2,
+                            y = trans.y - c.height / 2;
+                        sceneAreas.push({/*type:"rectangle", */start:(x/rate)+ "," + (y/rate), /*rotate: c.rotate, */width:c.width/rate, height:c.height/rate});
+                    } else if (c instanceof  cce.Polygon) {
+                        var points = $.extend(true, [], c.getPoints());
+                        if (points.length) {
+                            $.each(points, function(ind, p) {
+                                p.x = p.x / rate;
+                                p.y = p.y / rate;
+                            })
+                        }
+                        sceneAreas.push({points:points});
+                    }
+                });
+            </pre>
         </div>
     </div>
     <script type="text/javascript" src="js/cce.js"></script>
